@@ -1,0 +1,44 @@
+Content-Type: multipart/mixed; boundary="//"
+MIME-Version: 1.0
+
+--//
+Content-Type: text/cloud-config; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="cloud-config.txt"
+
+#cloud-config
+cloud_final_modules:
+- [scripts-user, once]
+
+--//
+Content-Type: text/x-shellscript; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="userdata.txt"
+
+!/bin/bash
+sudo yum update -y
+sudo amazon-linux-extras install docker
+sed -i 's/dockerd\ \-H\ fd\:\/\//dockerd/g' /lib/systemd/system/docker.service
+echo "{\"hosts\": [\"tcp://0.0.0.0:2375\", \"unix:///var/run/docker.sock\"]}" > /etc/docker/daemon.json
+sudo systemctl enable docker.service
+sudo systemctl enable containerd.service
+sudo systemctl daemon-reload
+sudo usermod -a -G docker ec2-user
+--//--`
+
+
+====
+
+
+#!/bin/bash -xe
+sudo yum update -y
+sudo amazon-linux-extras install docker
+sed -i 's/dockerd\ \-H\ fd\:\/\//dockerd/g' /lib/systemd/system/docker.service
+echo "{\"hosts\": [\"tcp://0.0.0.0:2375\", \"unix:///var/run/docker.sock\"]}" > /etc/docker/daemon.json
+sudo systemctl enable docker.service
+sudo systemctl enable containerd.service
+sudo systemctl daemon-reload
+sudo service docker restart
+sudo usermod -a -G docker ec2-user
